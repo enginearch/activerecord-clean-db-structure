@@ -60,6 +60,14 @@ module ActiveRecordCleanDbStructure
         dump.gsub!(/^-- Name: (\w+\s+)?\w+_pkey; Type: CONSTRAINT$/, '')
       end
 
+      # remove unneeded sequences
+      unless options[:ignore_uuid_sequences] == true
+        uuid_sequences_name_only = /([\w\.]+)_seq_[0-9a-f]{8}_[0-9a-f]{4}_[0-9a-f]{4}_[0-9a-f]{4}_[0-9a-f]{12}/
+
+        dump.gsub!(/-- Name: #{uuid_sequences_name_only}; Type: SEQUENCE/, '')
+        dump.gsub!(/CREATE SEQUENCE #{uuid_sequences_name_only}[^;]+;/im, '')
+      end
+
       # Remove inherited tables
       inherited_tables_regexp = /-- Name: ([\w_\.]+); Type: TABLE\n\n[^;]+?INHERITS \([\w_\.]+\);/m
       inherited_tables = dump.scan(inherited_tables_regexp).map(&:first)
