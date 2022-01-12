@@ -61,11 +61,11 @@ module ActiveRecordCleanDbStructure
       end
 
       # remove unneeded sequences
-      unless options[:ignore_uuid_sequences] == true
-        uuid_sequences_name_only = /([\w\.]+)_seq_[0-9a-f]{8}_[0-9a-f]{4}_[0-9a-f]{4}_[0-9a-f]{4}_[0-9a-f]{12}/
-
-        dump.gsub!(/-- Name: #{uuid_sequences_name_only}; Type: SEQUENCE/, '')
-        dump.gsub!(/CREATE SEQUENCE #{uuid_sequences_name_only}[^;]+;/im, '')
+      # uuid_sequences_name_only = /([\w\.]+)_seq_[0-9a-f]{8}_[0-9a-f]{4}_[0-9a-f]{4}_[0-9a-f]{4}_[0-9a-f]{12}/
+      sequence_to_remove_name_regexps = options[:sequence_to_remove_name_regexps] || []
+      sequence_to_remove_name_regexps.each do |seq_name_regexp|
+        dump.gsub!(/-- Name: #{seq_name_regexp}; Type: SEQUENCE/, '')
+        dump.gsub!(/CREATE SEQUENCE #{seq_name_regexp}[^;]+;/im, '')
       end
 
       # Remove inherited tables
@@ -115,6 +115,13 @@ module ActiveRecordCleanDbStructure
       end
       # This is mostly done to allow restoring Postgres 11 output on Postgres 10
       dump.gsub!(/CREATE INDEX ([\w_]+) ON ONLY/, 'CREATE INDEX \\1 ON')
+
+
+      # replace elements
+      replace_nodes = options[:replace_nodes] || []
+      replace_nodes.each do |replace_node|
+        dump.gsub!(/#{replace_node.regexp}/, replace_node.value)
+      end
 
       if options[:order_schema_migrations_values] == true
         schema_migrations_cleanup
