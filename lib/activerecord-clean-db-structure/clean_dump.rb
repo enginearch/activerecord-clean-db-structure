@@ -120,7 +120,7 @@ module ActiveRecordCleanDbStructure
       # replace elements
       replace_nodes = options[:replace_nodes] || []
       replace_nodes.each do |replace_node|
-        dump.gsub!(/#{replace_node[:regexp]}/, replace_node[:value])
+        dump.gsub!(replace_node[:regexp], replace_node[:value])
       end
 
       if options[:order_schema_migrations_values] == true
